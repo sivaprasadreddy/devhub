@@ -10,6 +10,8 @@ import { relativeTime } from '../status'
 
 interface ProjectDetailProps {
   projectId: number
+  // Changes whenever the app refreshes, triggering a reload.
+  refreshCount: number
   onBack: () => void
 }
 
@@ -100,7 +102,7 @@ function prBadges(pr: PullRequest) {
   return badges
 }
 
-function ProjectDetail({ projectId, onBack }: ProjectDetailProps) {
+function ProjectDetail({ projectId, refreshCount, onBack }: ProjectDetailProps) {
   const [details, setDetails] = useState<ProjectDetails | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -118,7 +120,7 @@ function ProjectDetail({ projectId, onBack }: ProjectDetailProps) {
       .finally(() => setLoading(false))
   }, [projectId])
 
-  useEffect(load, [load])
+  useEffect(load, [load, refreshCount])
 
   if (!details) {
     return (

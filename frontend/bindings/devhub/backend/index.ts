@@ -4,10 +4,12 @@
 import * as ActivityService from "./activityservice.js";
 import * as LauncherService from "./launcherservice.js";
 import * as ProjectService from "./projectservice.js";
+import * as SettingsService from "./settingsservice.js";
 export {
     ActivityService,
     LauncherService,
-    ProjectService
+    ProjectService,
+    SettingsService
 };
 
 export {

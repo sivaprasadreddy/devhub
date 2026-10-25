@@ -5,9 +5,14 @@ interface TopbarProps {
   onRefresh: () => void
   refreshing: boolean
   lastRefresh: Date | null
+  refreshInterval: number | null
 }
 
-function Topbar({ title, search, onSearch, onRefresh, refreshing, lastRefresh }: TopbarProps) {
+export function formatInterval(seconds: number): string {
+  return seconds % 60 === 0 ? `${seconds / 60} min` : `${seconds} s`
+}
+
+function Topbar({ title, search, onSearch, onRefresh, refreshing, lastRefresh, refreshInterval }: TopbarProps) {
   return (
     <header className="topbar">
       <h1 className="topbar-title">{title}</h1>
@@ -19,7 +24,7 @@ function Topbar({ title, search, onSearch, onRefresh, refreshing, lastRefresh }:
           value={search}
           onChange={(e) => onSearch(e.target.value)}
         />
-        <span className="muted">
+        <span className="muted" title={refreshInterval ? `Auto-refresh every ${formatInterval(refreshInterval)}` : 'Auto-refresh is off'}>
           {lastRefresh ? `Updated ${lastRefresh.toLocaleTimeString()}` : 'Not refreshed yet'}
         </span>
         <button className="btn" onClick={onRefresh} disabled={refreshing}>{refreshing ? 'Refreshing…' : 'Refresh'}</button>

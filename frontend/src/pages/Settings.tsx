@@ -5,6 +5,7 @@ import { useLaunchers } from '../launchers'
 import AppIcon from '../components/AppIcon'
 import AppMenu from '../components/AppMenu'
 import { ActivityState } from '../status'
+import { fontSizes, useFontSize } from '../fontSize'
 import { ThemePreference, useTheme } from '../theme'
 
 const themes: { value: ThemePreference; label: string }[] = [
@@ -15,10 +16,13 @@ const themes: { value: ThemePreference; label: string }[] = [
 
 interface SettingsProps {
   activity: ActivityState | null
+  refreshInterval: number | null
+  onRefreshIntervalChange: (seconds: number) => Promise<void>
 }
 
-function Settings({ activity }: SettingsProps) {
+function Settings({ activity, refreshInterval, onRefreshIntervalChange }: SettingsProps) {
   const [theme, setTheme] = useTheme()
+  const [fontSize, setFontSize] = useFontSize()
   const [launchers, savePreferences] = useLaunchers()
   const [error, setError] = useState('')
 
@@ -68,16 +72,41 @@ function Settings({ activity }: SettingsProps) {
             ))}
           </div>
         </div>
+        <div className="field">
+          <span>Font size</span>
+          <div className="segmented" role="radiogroup" aria-label="Font size">
+            {fontSizes.map((f) => (
+              <button
+                key={f.value}
+                role="radio"
+                aria-checked={fontSize === f.value}
+                className={`segment${fontSize === f.value ? ' is-active' : ''}`}
+                onClick={() => setFontSize(f.value)}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </section>
       <section className="panel settings">
         <div className="panel-header"><h2>General</h2></div>
         <label className="field">
           <span>Refresh interval</span>
-          <select disabled defaultValue="300">
+          <select
+            value={refreshInterval ?? ''}
+            disabled={refreshInterval === null}
+            onChange={(e) => {
+              setError('')
+              onRefreshIntervalChange(Number(e.target.value)).catch((err) => setError(errorMessage(err)))
+            }}
+          >
+            {refreshInterval === null && <option value="">Loading…</option>}
             <option value="0">Manual only</option>
             <option value="60">Every minute</option>
             <option value="300">Every 5 minutes</option>
             <option value="900">Every 15 minutes</option>
+            <option value="1800">Every 30 minutes</option>
           </select>
         </label>
         <div className="field">
