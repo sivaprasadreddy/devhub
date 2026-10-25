@@ -1,4 +1,4 @@
-module changeme
+module devhub
 
 go 1.26.0
 
