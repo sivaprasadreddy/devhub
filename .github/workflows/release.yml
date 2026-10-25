@@ -1,0 +1,57 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  macos:
+    name: macOS desktop
+    runs-on: macos-latest
+    if: github.ref_type == 'tag'
+    steps:
+      - name: Validate tag
+        run: |
+          if [[ ! "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Tag ${GITHUB_REF_NAME} must match vx.x.x (for example v1.2.3)"
+            exit 1
+          fi
+
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.27'
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      - name: Install Wails CLI
+        run: go install github.com/wailsapp/wails/v3/cmd/wails3@latest
+
+      - name: Install Task
+        uses: go-task/setup-task@v2
+
+      - name: Package macOS app
+        run: wails3 task darwin:package:universal
+
+      - name: Archive app bundle
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent \
+            bin/devhub.app \
+            "devhub-${GITHUB_REF_NAME}-macos.zip"
+
+      - name: Publish GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "DevHub ${GITHUB_REF_NAME}" \
+            --generate-notes \
+            --verify-tag \
+            "devhub-${GITHUB_REF_NAME}-macos.zip"
