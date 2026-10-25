@@ -84,3 +84,12 @@ func (s *ProjectService) CloneProject(ctx context.Context, url, parentDir string
 func (s *ProjectService) RemoveProject(id int64) error {
 	return s.store.DeleteProject(id)
 }
+
+// GetStatuses returns the local Git status of every tracked project.
+func (s *ProjectService) GetStatuses(ctx context.Context) ([]GitStatus, error) {
+	projects, err := s.store.ListProjects()
+	if err != nil {
+		return nil, err
+	}
+	return readStatuses(ctx, projects), nil
+}

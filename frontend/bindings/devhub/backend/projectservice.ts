@@ -29,6 +29,13 @@ export function CloneProject(url: string, parentDir: string): $CancellablePromis
 }
 
 /**
+ * GetStatuses returns the local Git status of every tracked project.
+ */
+export function GetStatuses(): $CancellablePromise<$models.GitStatus[] | null> {
+    return $Call.ByID(2392207122);
+}
+
+/**
  * ListProjects returns all tracked projects.
  */
 export function ListProjects(): $CancellablePromise<$models.Project[] | null> {

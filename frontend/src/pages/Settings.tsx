@@ -1,6 +1,35 @@
+import { ThemePreference, useTheme } from '../theme'
+
+const themes: { value: ThemePreference; label: string }[] = [
+  { value: 'system', label: 'System' },
+  { value: 'light', label: 'Light' },
+  { value: 'dark', label: 'Dark' },
+]
+
 function Settings() {
+  const [theme, setTheme] = useTheme()
+
   return (
     <div className="page">
+      <section className="panel settings">
+        <div className="panel-header"><h2>Appearance</h2></div>
+        <div className="field">
+          <span>Theme</span>
+          <div className="segmented" role="radiogroup" aria-label="Theme">
+            {themes.map((t) => (
+              <button
+                key={t.value}
+                role="radio"
+                aria-checked={theme === t.value}
+                className={`segment${theme === t.value ? ' is-active' : ''}`}
+                onClick={() => setTheme(t.value)}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
       <section className="panel settings">
         <div className="panel-header"><h2>General</h2></div>
         <label className="field">

@@ -1,20 +1,51 @@
-:root {
+:root,
+:root[data-theme="dark"] {
   --bg: #18181b;
-  --sidebar-bg: rgba(24, 24, 27, 0.6);
+  --sidebar-bg: rgba(24, 24, 27, 0.85);
   --panel-bg: #202024;
   --border: #2e2e33;
   --text: #e4e4e7;
   --muted: #8e8e96;
   --accent: #3b82f6;
+  --accent-hover: var(--accent-hover);
+  --accent-soft: var(--accent-soft);
+  --hover: var(--hover);
+  --btn-bg: var(--btn-bg);
+  --btn-hover: var(--btn-hover);
+  --input-bg: var(--input-bg);
   --warning: #f59e0b;
   --danger: #ef4444;
+  --success: #22c55e;
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --bg: #ffffff;
+  --sidebar-bg: rgba(242, 242, 245, 0.9);
+  --panel-bg: #f7f7f9;
+  --border: #e2e2e7;
+  --text: #1d1d1f;
+  --muted: #6e6e76;
+  --accent: #2563eb;
+  --accent-hover: #1d4fd7;
+  --accent-soft: rgba(37, 99, 235, 0.14);
+  --hover: rgba(0, 0, 0, 0.05);
+  --btn-bg: #ffffff;
+  --btn-hover: #f0f0f3;
+  --input-bg: #ffffff;
+  --warning: #b45309;
+  --danger: #dc2626;
+  --success: #15803d;
+  color-scheme: light;
+}
+
+:root {
   --titlebar-height: 52px;
 
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
   font-size: 13px;
   color: var(--text);
   background: transparent;
-  color-scheme: dark;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -97,11 +128,11 @@ h1, h2, h3 {
 }
 
 .nav-item:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--hover);
 }
 
 .nav-item.is-active {
-  background: rgba(59, 130, 246, 0.2);
+  background: var(--accent-soft);
 }
 
 .nav-icon {
@@ -161,14 +192,14 @@ h1, h2, h3 {
   padding: 5px 12px;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: #2a2a2f;
+  background: var(--btn-bg);
   color: var(--text);
   font: inherit;
   cursor: pointer;
 }
 
 .btn:hover:not(:disabled) {
-  background: #333339;
+  background: var(--btn-hover);
 }
 
 .btn:disabled {
@@ -179,17 +210,18 @@ h1, h2, h3 {
 .btn-primary {
   border-color: var(--accent);
   background: var(--accent);
+  color: #ffffff;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #2f6fdc;
+  background: var(--accent-hover);
 }
 
 .search, .field input, .field select {
   padding: 5px 10px;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: #121214;
+  background: var(--input-bg);
   color: var(--text);
   font: inherit;
 }
@@ -404,4 +436,106 @@ h1, h2, h3 {
   justify-content: flex-end;
   gap: 8px;
   padding: 16px 16px 0;
+}
+
+.segmented {
+  display: flex;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--input-bg);
+}
+
+.segment {
+  padding: 4px 14px;
+  border: none;
+  border-radius: 5px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.segment.is-active {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.badge {
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.badge-success {
+  background: color-mix(in srgb, var(--success) 15%, transparent);
+  color: var(--success);
+}
+
+.badge-warning {
+  background: color-mix(in srgb, var(--warning) 15%, transparent);
+  color: var(--warning);
+}
+
+.badge-danger {
+  background: color-mix(in srgb, var(--danger) 15%, transparent);
+  color: var(--danger);
+}
+
+.badge-muted {
+  background: var(--hover);
+  color: var(--muted);
+}
+
+.sync {
+  display: flex;
+  gap: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.text-warning {
+  color: var(--warning);
+}
+
+.text-accent {
+  color: var(--accent);
+}
+
+.dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 7px;
+  border-radius: 50%;
+  vertical-align: 1px;
+}
+
+.dot-success {
+  background: var(--success);
+}
+
+.dot-warning {
+  background: var(--warning);
+}
+
+.sort {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sort select {
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--input-bg);
+  color: var(--text);
+  font: inherit;
 }

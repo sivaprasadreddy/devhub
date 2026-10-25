@@ -6,6 +6,11 @@ export {
     ProjectService
 };
 
+export {
+    RepoState
+} from "./models.js";
+
 export type {
+    GitStatus,
     Project
 } from "./models.js";

@@ -9,6 +9,7 @@ import Activity from './pages/Activity'
 import Insights from './pages/Insights'
 import Settings from './pages/Settings'
 import { PageId, footerNav, mainNav } from './navigation'
+import { StatusMap } from './status'
 
 function App() {
   const [page, setPage] = useState<PageId>('dashboard')
@@ -16,16 +17,26 @@ function App() {
   const [search, setSearch] = useState('')
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
 
-  const refresh = useCallback(() => {
-    ProjectService.ListProjects()
-      .then((list) => {
-        setProjects(list ?? [])
-        setLastRefresh(new Date())
-      })
-      .catch(console.error)
+  const [statuses, setStatuses] = useState<StatusMap>(new Map())
+  const [refreshing, setRefreshing] = useState(false)
+
+  const refresh = useCallback(async () => {
+    setRefreshing(true)
+    try {
+      const [list, statusList] = await Promise.all([ProjectService.ListProjects(), ProjectService.GetStatuses()])
+      setProjects(list ?? [])
+      setStatuses(new Map((statusList ?? []).map((st) => [st.projectId, st])))
+      setLastRefresh(new Date())
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setRefreshing(false)
+    }
   }, [])
 
-  useEffect(refresh, [refresh])
+  useEffect(() => {
+    refresh()
+  }, [refresh])
 
   const title = [...mainNav, ...footerNav].find((item) => item.id === page)?.label ?? ''
   const query = search.trim().toLowerCase()
@@ -37,9 +48,9 @@ function App() {
     <div className="app">
       <Sidebar active={page} onSelect={setPage} projectCount={projects.length} />
       <div className="main">
-        <Topbar title={title} search={search} onSearch={setSearch} onRefresh={refresh} lastRefresh={lastRefresh} />
+        <Topbar title={title} search={search} onSearch={setSearch} onRefresh={refresh} refreshing={refreshing} lastRefresh={lastRefresh} />
         <main className="content">
-          {page === 'dashboard' && <Dashboard projects={visibleProjects} onAddProject={() => setPage('projects')} />}
+          {page === 'dashboard' && <Dashboard projects={visibleProjects} statuses={statuses} onAddProject={() => setPage('projects')} />}
           {page === 'projects' && <Projects projects={visibleProjects} onChange={refresh} />}
           {page === 'activity' && <Activity />}
           {page === 'insights' && <Insights />}

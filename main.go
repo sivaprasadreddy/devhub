@@ -51,8 +51,10 @@ func main() {
 			Backdrop:                application.MacBackdropTranslucent,
 			TitleBar:                application.MacTitleBarHiddenInset,
 		},
-		BackgroundColour: application.NewRGB(24, 24, 27),
-		URL:              "/",
+		// Translucent so the native backdrop (which follows the macOS appearance)
+		// shows while the page loads, avoiding a dark flash in light mode.
+		BackgroundType: application.BackgroundTypeTranslucent,
+		URL:            "/",
 	})
 
 	if err := app.Run(); err != nil {

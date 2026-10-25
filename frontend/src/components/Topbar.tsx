@@ -3,10 +3,11 @@ interface TopbarProps {
   search: string
   onSearch: (value: string) => void
   onRefresh: () => void
+  refreshing: boolean
   lastRefresh: Date | null
 }
 
-function Topbar({ title, search, onSearch, onRefresh, lastRefresh }: TopbarProps) {
+function Topbar({ title, search, onSearch, onRefresh, refreshing, lastRefresh }: TopbarProps) {
   return (
     <header className="topbar">
       <h1 className="topbar-title">{title}</h1>
@@ -21,7 +22,7 @@ function Topbar({ title, search, onSearch, onRefresh, lastRefresh }: TopbarProps
         <span className="muted">
           {lastRefresh ? `Updated ${lastRefresh.toLocaleTimeString()}` : 'Not refreshed yet'}
         </span>
-        <button className="btn" onClick={onRefresh}>Refresh</button>
+        <button className="btn" onClick={onRefresh} disabled={refreshing}>{refreshing ? 'Refreshing…' : 'Refresh'}</button>
       </div>
     </header>
   )
