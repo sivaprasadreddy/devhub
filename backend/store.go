@@ -23,6 +23,10 @@ CREATE TABLE IF NOT EXISTS projects (
 	remote_url TEXT    NOT NULL DEFAULT '',
 	grp        TEXT    NOT NULL DEFAULT '',
 	added_at   INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS settings (
+	key   TEXT PRIMARY KEY,
+	value TEXT NOT NULL
 );`
 
 // Store persists projects in a SQLite database.
@@ -92,5 +96,24 @@ func (s *Store) InsertProject(p *Project) error {
 // DeleteProject removes the project with the given ID.
 func (s *Store) DeleteProject(id int64) error {
 	_, err := s.db.Exec(`DELETE FROM projects WHERE id = ?`, id)
+	return err
+}
+
+// GetSetting returns the value stored for key, or "" if unset.
+func (s *Store) GetSetting(key string) (string, error) {
+	var value string
+	err := s.db.QueryRow(`SELECT value FROM settings WHERE key = ?`, key).Scan(&value)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", nil
+	}
+	return value, err
+}
+
+// SetSetting stores value for key.
+func (s *Store) SetSetting(key, value string) error {
+	_, err := s.db.Exec(
+		`INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+		key, value,
+	)
 	return err
 }

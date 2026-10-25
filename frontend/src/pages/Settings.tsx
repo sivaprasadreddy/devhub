@@ -1,3 +1,7 @@
+import { useState } from 'react'
+import type { App, Preferences } from '../../bindings/devhub/backend'
+import { errorMessage } from '../errors'
+import { useLaunchers } from '../launchers'
 import { ActivityState } from '../status'
 import { ThemePreference, useTheme } from '../theme'
 
@@ -13,6 +17,21 @@ interface SettingsProps {
 
 function Settings({ activity }: SettingsProps) {
   const [theme, setTheme] = useTheme()
+  const [launchers, savePreferences] = useLaunchers()
+  const [error, setError] = useState('')
+
+  const update = (change: Partial<Preferences>) => {
+    if (!launchers) return
+    setError('')
+    savePreferences({ ...launchers.preferences, ...change }).catch((e) => setError(errorMessage(e)))
+  }
+
+  const appSelect = (apps: App[], value: string, onChange: (path: string) => void) => (
+    <select value={value} onChange={(e) => onChange(e.target.value)} disabled={!launchers || apps.length === 0}>
+      {apps.length === 0 && <option value="">{launchers ? 'None found' : 'Loading…'}</option>}
+      {apps.map((a) => <option key={a.path} value={a.path}>{a.name}</option>)}
+    </select>
+  )
 
   return (
     <div className="page">
@@ -47,9 +66,14 @@ function Settings({ activity }: SettingsProps) {
           </select>
         </label>
         <label className="field">
-          <span>Preferred IDE</span>
-          <input type="text" placeholder="e.g. code, idea, zed" disabled />
+          <span>Preferred terminal</span>
+          {appSelect(launchers?.terminals ?? [], launchers?.preferences.terminal ?? '', (terminal) => update({ terminal }))}
         </label>
+        <label className="field">
+          <span>Preferred IDE</span>
+          {appSelect(launchers?.ides ?? [], launchers?.preferences.ide ?? '', (ide) => update({ ide }))}
+        </label>
+        {error && <p className="error">{error}</p>}
       </section>
       <section className="panel settings">
         <div className="panel-header"><h2>GitHub</h2></div>

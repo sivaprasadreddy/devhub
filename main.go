@@ -25,6 +25,7 @@ func main() {
 	}
 	defer store.Close()
 	projectService := backend.NewProjectService(store)
+	launcherService := backend.NewLauncherService(store)
 	activityService := backend.NewActivityService(store, backend.NewGitHubProvider())
 
 	app := application.New(application.Options{
@@ -33,6 +34,7 @@ func main() {
 		Services: []application.Service{
 			application.NewService(projectService),
 			application.NewService(activityService),
+			application.NewService(launcherService),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),

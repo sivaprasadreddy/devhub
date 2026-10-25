@@ -579,3 +579,31 @@ code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
 }
+
+.ide-group {
+  display: flex;
+}
+
+.ide-group .btn-icon {
+  display: flex;
+  align-items: center;
+  padding: 5px 8px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.ide-select {
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+  background: var(--btn-bg);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.ide-select:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
