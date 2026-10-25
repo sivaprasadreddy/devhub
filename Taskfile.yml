@@ -2,6 +2,9 @@ version: '3'
 
 vars:
   APP_NAME: "devhub"
+  # Name of the .app bundle. macOS shows the bundle file name in the Dock and
+  # Finder when it differs from CFBundleName, so keep it equal to "DevHub".
+  BUNDLE_NAME: "DevHub"
   BIN_DIR: "bin"
   PACKAGE_MANAGER: '{{.PACKAGE_MANAGER | default "npm"}}'
   VITE_PORT: '{{.WAILS_VITE_PORT | default 9245}}'

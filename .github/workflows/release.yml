@@ -43,7 +43,7 @@ jobs:
       - name: Archive app bundle
         run: |
           ditto -c -k --sequesterRsrc --keepParent \
-            bin/devhub.app \
+            bin/DevHub.app \
             "devhub-${GITHUB_REF_NAME}-macos.zip"
 
       - name: Publish GitHub Release

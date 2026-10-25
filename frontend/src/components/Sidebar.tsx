@@ -22,7 +22,10 @@ function Sidebar({ active, onSelect, projectCount }: SidebarProps) {
   return (
     <aside className="sidebar">
       <div className="sidebar-titlebar" />
-      <div className="sidebar-brand">DevHub</div>
+      <div className="sidebar-brand">
+        <img className="sidebar-logo" src="/logo.png" width={28} height={28} alt="" />
+        <span>DevHub</span>
+      </div>
       <nav className="nav">{mainNav.map(renderItem)}</nav>
       <nav className="nav nav-footer">{footerNav.map(renderItem)}</nav>
     </aside>
