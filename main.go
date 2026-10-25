@@ -25,12 +25,14 @@ func main() {
 	}
 	defer store.Close()
 	projectService := backend.NewProjectService(store)
+	activityService := backend.NewActivityService(store, backend.NewGitHubProvider())
 
 	app := application.New(application.Options{
 		Name:        "DevHub",
 		Description: "Manage multiple software projects from one place",
 		Services: []application.Service{
 			application.NewService(projectService),
+			application.NewService(activityService),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),

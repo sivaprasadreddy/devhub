@@ -1,3 +1,4 @@
+import { ActivityState } from '../status'
 import { ThemePreference, useTheme } from '../theme'
 
 const themes: { value: ThemePreference; label: string }[] = [
@@ -6,7 +7,11 @@ const themes: { value: ThemePreference; label: string }[] = [
   { value: 'dark', label: 'Dark' },
 ]
 
-function Settings() {
+interface SettingsProps {
+  activity: ActivityState | null
+}
+
+function Settings({ activity }: SettingsProps) {
   const [theme, setTheme] = useTheme()
 
   return (
@@ -48,8 +53,21 @@ function Settings() {
       </section>
       <section className="panel settings">
         <div className="panel-header"><h2>GitHub</h2></div>
-        <p className="muted">Connect a GitHub account to load pull requests, issues, and CI status.</p>
-        <button className="btn" disabled>Connect GitHub</button>
+        <div className="field">
+          <span>Status</span>
+          {!activity ? (
+            <span className="muted">Checking…</span>
+          ) : activity.connected ? (
+            <span className="badge badge-success">Connected</span>
+          ) : (
+            <span className="badge badge-muted">Not connected</span>
+          )}
+        </div>
+        {activity?.error && <p className="error">{activity.error}</p>}
+        <p className="muted">
+          DevHub uses your GitHub CLI login (<code>gh auth login</code>) or a token in the <code>GITHUB_TOKEN</code>
+          {' '}environment variable. Click Refresh after signing in.
+        </p>
       </section>
     </div>
   )

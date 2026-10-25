@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ProjectService } from '../bindings/devhub/backend'
+import { ActivityService, ProjectService } from '../bindings/devhub/backend'
 import type { Project } from '../bindings/devhub/backend'
 import Sidebar from './components/Sidebar'
 import Topbar from './components/Topbar'
@@ -9,7 +9,7 @@ import Activity from './pages/Activity'
 import Insights from './pages/Insights'
 import Settings from './pages/Settings'
 import { PageId, footerNav, mainNav } from './navigation'
-import { StatusMap } from './status'
+import { ActivityState, StatusMap } from './status'
 
 function App() {
   const [page, setPage] = useState<PageId>('dashboard')
@@ -19,9 +19,22 @@ function App() {
 
   const [statuses, setStatuses] = useState<StatusMap>(new Map())
   const [refreshing, setRefreshing] = useState(false)
+  const [activity, setActivity] = useState<ActivityState | null>(null)
+
+  // Remote activity loads separately so slow network calls never delay local Git status.
+  const loadActivity = useCallback(() => {
+    ActivityService.GetActivity()
+      .then((a) => setActivity({
+        connected: a.connected,
+        error: a.error,
+        repos: new Map((a.repos ?? []).map((r) => [r.projectId, r])),
+      }))
+      .catch((e) => setActivity({ connected: false, error: String(e), repos: new Map() }))
+  }, [])
 
   const refresh = useCallback(async () => {
     setRefreshing(true)
+    loadActivity()
     try {
       const [list, statusList] = await Promise.all([ProjectService.ListProjects(), ProjectService.GetStatuses()])
       setProjects(list ?? [])
@@ -32,7 +45,7 @@ function App() {
     } finally {
       setRefreshing(false)
     }
-  }, [])
+  }, [loadActivity])
 
   useEffect(() => {
     refresh()
@@ -50,11 +63,11 @@ function App() {
       <div className="main">
         <Topbar title={title} search={search} onSearch={setSearch} onRefresh={refresh} refreshing={refreshing} lastRefresh={lastRefresh} />
         <main className="content">
-          {page === 'dashboard' && <Dashboard projects={visibleProjects} statuses={statuses} onAddProject={() => setPage('projects')} />}
+          {page === 'dashboard' && <Dashboard projects={visibleProjects} statuses={statuses} activity={activity} onAddProject={() => setPage('projects')} />}
           {page === 'projects' && <Projects projects={visibleProjects} onChange={refresh} />}
           {page === 'activity' && <Activity />}
           {page === 'insights' && <Insights />}
-          {page === 'settings' && <Settings />}
+          {page === 'settings' && <Settings activity={activity} />}
         </main>
       </div>
     </div>

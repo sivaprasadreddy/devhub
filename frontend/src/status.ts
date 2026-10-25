@@ -1,7 +1,13 @@
 import { RepoState } from '../bindings/devhub/backend'
-import type { GitStatus } from '../bindings/devhub/backend'
+import type { GitStatus, RepoActivity } from '../bindings/devhub/backend'
 
 export type StatusMap = Map<number, GitStatus>
+
+export interface ActivityState {
+  connected: boolean
+  error: string
+  repos: Map<number, RepoActivity>
+}
 
 export function changeCount(s: GitStatus): number {
   return s.added + s.modified + s.deleted + s.untracked + s.conflicts

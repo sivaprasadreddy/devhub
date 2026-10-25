@@ -1,13 +1,53 @@
-import type { GitStatus, Project } from '../../bindings/devhub/backend'
-import { attentionReasons, relativeTime, stateLabel, StatusMap } from '../status'
+import { Browser } from '@wailsio/runtime'
+import type { GitStatus, Project, RepoActivity } from '../../bindings/devhub/backend'
+import { ActivityState, attentionReasons, relativeTime, stateLabel, StatusMap } from '../status'
 
 interface ProjectTableProps {
   projects: Project[]
   statuses: StatusMap
+  activity: ActivityState | null
 }
 
 const columns = ['Project', 'Branch', 'Local status', 'Ahead / Behind', 'Last fetch', 'Last commit', 'PRs', 'Issues', 'CI']
 const notConnected = 'Connect GitHub to see this'
+
+function RemoteCount({ repo, count, path, label }: { repo: RepoActivity; count: number; path: string; label: string }) {
+  if (repo.error) {
+    return <span className="muted" title={repo.error}>!</span>
+  }
+  return (
+    <button
+      className={`link-count${count ? '' : ' muted'}`}
+      title={`Open ${label} for ${repo.repo}`}
+      onClick={() => Browser.OpenURL(`${repo.webUrl}/${path}`)}
+    >
+      {count}
+    </button>
+  )
+}
+
+function remoteCells(activity: ActivityState | null, project: Project) {
+  const repo = activity?.repos.get(project.id)
+  if (repo) {
+    return (
+      <>
+        <td><RemoteCount repo={repo} count={repo.openPrs} path="pulls" label="pull requests" /></td>
+        <td><RemoteCount repo={repo} count={repo.openIssues} path="issues" label="issues" /></td>
+      </>
+    )
+  }
+  const title = !activity
+    ? 'Loading…'
+    : !activity.connected
+      ? notConnected
+      : project.remoteUrl ? 'Not a GitHub repository' : 'No remote configured'
+  return (
+    <>
+      <td className="muted" title={title}>—</td>
+      <td className="muted" title={title}>—</td>
+    </>
+  )
+}
 
 function LocalStatus({ status }: { status: GitStatus }) {
   const label = stateLabel(status)
@@ -42,7 +82,7 @@ function SyncStatus({ status }: { status: GitStatus }) {
   )
 }
 
-function ProjectTable({ projects, statuses }: ProjectTableProps) {
+function ProjectTable({ projects, statuses, activity }: ProjectTableProps) {
   return (
     <table className="table">
       <thead>
@@ -75,9 +115,8 @@ function ProjectTable({ projects, statuses }: ProjectTableProps) {
               ) : (
                 <td colSpan={5} className="muted">Loading…</td>
               )}
-              <td className="muted" title={notConnected}>—</td>
-              <td className="muted" title={notConnected}>—</td>
-              <td className="muted" title={notConnected}>—</td>
+              {remoteCells(activity, p)}
+              <td className="muted" title="CI status is not available yet">—</td>
             </tr>
           )
         })}

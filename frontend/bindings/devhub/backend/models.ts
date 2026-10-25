@@ -35,6 +35,31 @@ export interface Project {
 }
 
 /**
+ * RemoteActivity is the result of loading activity for all projects.
+ */
+export interface RemoteActivity {
+    /**
+     * Connected reports whether the provider has credentials.
+     */
+    "connected": boolean;
+    "error": string;
+    "repos": RepoActivity[] | null;
+}
+
+/**
+ * RepoActivity is the hosting-provider activity of a project.
+ */
+export interface RepoActivity {
+    "projectId": number;
+    "provider": string;
+    "repo": string;
+    "webUrl": string;
+    "openPrs": number;
+    "openIssues": number;
+    "error": string;
+}
+
+/**
  * RepoState describes an in-progress operation or unusual HEAD state.
  */
 export enum RepoState {
