@@ -24,6 +24,8 @@ type App struct {
 	Name string  `json:"name"`
 	Path string  `json:"path"`
 	Kind AppKind `json:"kind"`
+	// Icon is a PNG data URL, or "" if the icon could not be read.
+	Icon string `json:"icon"`
 }
 
 // Known application bundle name prefixes. Prefixes also match variants such as

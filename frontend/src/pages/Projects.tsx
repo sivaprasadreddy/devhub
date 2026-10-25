@@ -5,7 +5,9 @@ import type { Project } from '../../bindings/devhub/backend'
 import CloneForm from '../components/CloneForm'
 import EmptyState from '../components/EmptyState'
 import { errorMessage } from '../errors'
-import { appName, useLaunchers } from '../launchers'
+import { useLaunchers } from '../launchers'
+import AppIcon from '../components/AppIcon'
+import AppMenu from '../components/AppMenu'
 
 interface ProjectsProps {
   projects: Project[]
@@ -24,8 +26,8 @@ function Projects({ projects, onChange }: ProjectsProps) {
 
   const ides = launchers?.ides ?? []
   const preferredIDE = launchers?.preferences.ide ?? ''
-  const preferredIDEName = appName(ides, preferredIDE)
-  const terminalName = appName(launchers?.terminals ?? [], launchers?.preferences.terminal ?? '')
+  const preferredApp = ides.find((a) => a.path === preferredIDE)
+  const terminalApp = launchers?.terminals.find((a) => a.path === launchers.preferences.terminal)
 
   const addLocal = async () => {
     setError('')
@@ -94,38 +96,31 @@ function Projects({ projects, onChange }: ProjectsProps) {
                 </div>
                 <div className="project-card-actions">
                   <button
-                    className="btn"
-                    title={terminalName ? `Open in ${terminalName}` : 'Open in terminal'}
+                    className="btn btn-with-icon"
+                    title={terminalApp ? `Open in ${terminalApp.name}` : 'Open in terminal'}
                     onClick={() => run(LauncherService.OpenInTerminal(p.path))}
                   >
+                    {terminalApp && <AppIcon app={terminalApp} />}
                     Terminal
                   </button>
                   <div className="ide-group">
                     <button
                       className="btn btn-icon"
-                      title={preferredIDEName ? `Open in ${preferredIDEName}` : 'No IDE found'}
-                      disabled={!preferredIDE}
+                      title={preferredApp ? `Open in ${preferredApp.name}` : 'No IDE found'}
+                      disabled={!preferredApp}
                       onClick={() => run(LauncherService.OpenInApp(preferredIDE, p.path))}
                     >
-                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <polyline points="16 18 22 12 16 6" />
-                        <polyline points="8 6 2 12 8 18" />
-                      </svg>
+                      <AppIcon app={preferredApp} />
                     </button>
-                    <select
-                      className="ide-select"
-                      aria-label="Open in IDE"
-                      value=""
-                      disabled={ides.length === 0}
-                      onChange={(e) => e.target.value && run(LauncherService.OpenInApp(e.target.value, p.path))}
-                    >
-                      <option value="">Open in…</option>
-                      {ides.map((a) => (
-                        <option key={a.path} value={a.path}>
-                          {a.name}{a.path === preferredIDE ? ' (preferred)' : ''}
-                        </option>
-                      ))}
-                    </select>
+                    <AppMenu
+                      apps={ides}
+                      className="ide-menu-trigger"
+                      trigger="Open in…"
+                      title="Open in another IDE"
+                      marked={preferredIDE}
+                      markLabel="Preferred"
+                      onSelect={(path) => run(LauncherService.OpenInApp(path, p.path))}
+                    />
                   </div>
                   <button className="btn" title="Show in Finder" onClick={() => run(LauncherService.OpenInFinder(p.path))}>
                     Finder

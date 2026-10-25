@@ -23,14 +23,14 @@ export function GetPreferences(): $CancellablePromise<$models.Preferences> {
 }
 
 /**
- * ListIDEs returns installed IDEs and editors.
+ * ListIDEs returns installed IDEs and editors with their icons.
  */
 export function ListIDEs(): $CancellablePromise<$models.App[] | null> {
     return $Call.ByID(1279087984);
 }
 
 /**
- * ListTerminals returns installed terminal applications.
+ * ListTerminals returns installed terminal applications with their icons.
  */
 export function ListTerminals(): $CancellablePromise<$models.App[] | null> {
     return $Call.ByID(2692698098);

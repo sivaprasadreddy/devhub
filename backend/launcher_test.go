@@ -3,6 +3,7 @@ package backend
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -68,5 +69,26 @@ func TestPreferences(t *testing.T) {
 
 	if err := s.SavePreferences(Preferences{IDE: "/bin/sh"}); err == nil {
 		t.Fatal("expected error for unknown app")
+	}
+}
+
+func TestAppIconDataURL(t *testing.T) {
+	const terminal = "/System/Applications/Utilities/Terminal.app"
+	if _, err := os.Stat(terminal); err != nil {
+		t.Skip("Terminal.app not available")
+	}
+	cache := t.TempDir()
+	icon := appIconDataURL(terminal, cache)
+	if !strings.HasPrefix(icon, "data:image/png;base64,") {
+		t.Fatalf("unexpected icon: %.40q", icon)
+	}
+	if entries, _ := os.ReadDir(cache); len(entries) != 1 {
+		t.Fatalf("expected one cached icon, got %d", len(entries))
+	}
+	if again := appIconDataURL(terminal, cache); again != icon {
+		t.Fatal("cached icon differs")
+	}
+	if appIconDataURL(t.TempDir(), cache) != "" {
+		t.Fatal("expected no icon for a non-app directory")
 	}
 }

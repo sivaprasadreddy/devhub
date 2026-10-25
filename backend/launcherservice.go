@@ -18,33 +18,41 @@ type Preferences struct {
 
 // LauncherService opens projects in Finder, terminals and IDEs.
 type LauncherService struct {
-	store *Store
-	dirs  []string
+	store    *Store
+	dirs     []string
+	iconsDir string
 }
 
 // NewLauncherService creates a service that stores preferences in store.
 func NewLauncherService(store *Store) *LauncherService {
-	return &LauncherService{store: store, dirs: appDirs()}
+	return &LauncherService{store: store, dirs: appDirs(), iconsDir: appIconCacheDir()}
 }
 
-// ListTerminals returns installed terminal applications.
+// ListTerminals returns installed terminal applications with their icons.
 func (s *LauncherService) ListTerminals() []App {
-	return findApps(AppKindTerminal, s.dirs)
+	return s.withIcons(findApps(AppKindTerminal, s.dirs))
 }
 
-// ListIDEs returns installed IDEs and editors.
+// ListIDEs returns installed IDEs and editors with their icons.
 func (s *LauncherService) ListIDEs() []App {
-	return findApps(AppKindIDE, s.dirs)
+	return s.withIcons(findApps(AppKindIDE, s.dirs))
+}
+
+func (s *LauncherService) withIcons(apps []App) []App {
+	for i := range apps {
+		apps[i].Icon = appIconDataURL(apps[i].Path, s.iconsDir)
+	}
+	return apps
 }
 
 // GetPreferences returns the preferred apps. Unset or uninstalled preferences
 // fall back to macOS Terminal and the first installed IDE.
 func (s *LauncherService) GetPreferences() (Preferences, error) {
-	terminal, err := s.preferred(settingTerminal, s.ListTerminals(), "Terminal")
+	terminal, err := s.preferred(settingTerminal, findApps(AppKindTerminal, s.dirs), "Terminal")
 	if err != nil {
 		return Preferences{}, err
 	}
-	ide, err := s.preferred(settingIDE, s.ListIDEs(), "")
+	ide, err := s.preferred(settingIDE, findApps(AppKindIDE, s.dirs), "")
 	if err != nil {
 		return Preferences{}, err
 	}
@@ -72,10 +80,10 @@ func (s *LauncherService) preferred(key string, apps []App, fallbackName string)
 
 // SavePreferences stores the preferred apps.
 func (s *LauncherService) SavePreferences(p Preferences) error {
-	if p.Terminal != "" && !containsApp(s.ListTerminals(), p.Terminal) {
+	if p.Terminal != "" && !containsApp(findApps(AppKindTerminal, s.dirs), p.Terminal) {
 		return fmt.Errorf("unknown terminal %s", p.Terminal)
 	}
-	if p.IDE != "" && !containsApp(s.ListIDEs(), p.IDE) {
+	if p.IDE != "" && !containsApp(findApps(AppKindIDE, s.dirs), p.IDE) {
 		return fmt.Errorf("unknown IDE %s", p.IDE)
 	}
 	if err := s.store.SetSetting(settingTerminal, p.Terminal); err != nil {
@@ -103,7 +111,7 @@ func (s *LauncherService) OpenInTerminal(ctx context.Context, dir string) error 
 
 // OpenInApp opens dir in the given installed IDE or terminal.
 func (s *LauncherService) OpenInApp(ctx context.Context, appPath, dir string) error {
-	if !containsApp(s.ListIDEs(), appPath) && !containsApp(s.ListTerminals(), appPath) {
+	if !containsApp(findApps(AppKindIDE, s.dirs), appPath) && !containsApp(findApps(AppKindTerminal, s.dirs), appPath) {
 		return fmt.Errorf("unknown application %s", appPath)
 	}
 	return openWith(ctx, appPath, dir)

@@ -8,6 +8,11 @@ export interface App {
     "name": string;
     "path": string;
     "kind": AppKind;
+
+    /**
+     * Icon is a PNG data URL, or "" if the icon could not be read.
+     */
+    "icon": string;
 }
 
 /**

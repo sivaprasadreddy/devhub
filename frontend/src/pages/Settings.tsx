@@ -2,6 +2,8 @@ import { useState } from 'react'
 import type { App, Preferences } from '../../bindings/devhub/backend'
 import { errorMessage } from '../errors'
 import { useLaunchers } from '../launchers'
+import AppIcon from '../components/AppIcon'
+import AppMenu from '../components/AppMenu'
 import { ActivityState } from '../status'
 import { ThemePreference, useTheme } from '../theme'
 
@@ -26,12 +28,25 @@ function Settings({ activity }: SettingsProps) {
     savePreferences({ ...launchers.preferences, ...change }).catch((e) => setError(errorMessage(e)))
   }
 
-  const appSelect = (apps: App[], value: string, onChange: (path: string) => void) => (
-    <select value={value} onChange={(e) => onChange(e.target.value)} disabled={!launchers || apps.length === 0}>
-      {apps.length === 0 && <option value="">{launchers ? 'None found' : 'Loading…'}</option>}
-      {apps.map((a) => <option key={a.path} value={a.path}>{a.name}</option>)}
-    </select>
-  )
+  const appSelect = (apps: App[], value: string, onChange: (path: string) => void) => {
+    const selected = apps.find((a) => a.path === value)
+    return (
+      <AppMenu
+        apps={apps}
+        className="app-select"
+        marked={value}
+        onSelect={onChange}
+        disabled={!launchers}
+        trigger={
+          selected ? (
+            <span className="app-select-value"><AppIcon app={selected} />{selected.name}</span>
+          ) : (
+            <span className="muted">{launchers ? 'None found' : 'Loading…'}</span>
+          )
+        }
+      />
+    )
+  }
 
   return (
     <div className="page">
@@ -65,14 +80,14 @@ function Settings({ activity }: SettingsProps) {
             <option value="900">Every 15 minutes</option>
           </select>
         </label>
-        <label className="field">
+        <div className="field">
           <span>Preferred terminal</span>
           {appSelect(launchers?.terminals ?? [], launchers?.preferences.terminal ?? '', (terminal) => update({ terminal }))}
-        </label>
-        <label className="field">
+        </div>
+        <div className="field">
           <span>Preferred IDE</span>
           {appSelect(launchers?.ides ?? [], launchers?.preferences.ide ?? '', (ide) => update({ ide }))}
-        </label>
+        </div>
         {error && <p className="error">{error}</p>}
       </section>
       <section className="panel settings">

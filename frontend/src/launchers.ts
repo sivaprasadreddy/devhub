@@ -26,6 +26,3 @@ export function useLaunchers(): [Launchers | null, (p: Preferences) => Promise<v
   return [launchers, save]
 }
 
-export function appName(apps: App[], path: string): string {
-  return apps.find((a) => a.path === path)?.name ?? ''
-}
