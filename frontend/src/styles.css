@@ -360,3 +360,48 @@ h1, h2, h3 {
   justify-content: space-between;
   padding: 12px 16px 0;
 }
+
+.btn-danger:hover:not(:disabled) {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.error {
+  margin: 0;
+  color: var(--danger);
+  white-space: pre-wrap;
+  user-select: text;
+}
+
+.clone-form {
+  padding-bottom: 16px;
+}
+
+.clone-form .error {
+  padding: 12px 16px 0;
+}
+
+.clone-form .field input {
+  width: 60%;
+}
+
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 420px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px 16px 0;
+}

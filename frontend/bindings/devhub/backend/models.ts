@@ -5,7 +5,7 @@
  * Project is a local Git repository tracked by DevHub.
  */
 export interface Project {
-    "id": string;
+    "id": number;
     "name": string;
     "path": string;
     "remoteUrl": string;

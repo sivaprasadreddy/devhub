@@ -3,6 +3,8 @@ package main
 import (
 	"embed"
 	"log"
+	"os"
+	"path/filepath"
 
 	"devhub/backend"
 
@@ -13,10 +15,16 @@ import (
 var assets embed.FS
 
 func main() {
-	projectService, err := backend.NewProjectService()
+	configDir, err := os.UserConfigDir()
 	if err != nil {
 		log.Fatal(err)
 	}
+	store, err := backend.OpenStore(filepath.Join(configDir, "devhub", "devhub.db"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer store.Close()
+	projectService := backend.NewProjectService(store)
 
 	app := application.New(application.Options{
 		Name:        "DevHub",

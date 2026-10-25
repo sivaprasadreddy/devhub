@@ -1,21 +1,76 @@
+import { useState } from 'react'
+import { Dialogs } from '@wailsio/runtime'
+import { ProjectService } from '../../bindings/devhub/backend'
 import type { Project } from '../../bindings/devhub/backend'
+import CloneForm from '../components/CloneForm'
 import EmptyState from '../components/EmptyState'
+import { errorMessage } from '../errors'
 
 interface ProjectsProps {
   projects: Project[]
+  onChange: () => void
 }
 
-function Projects({ projects }: ProjectsProps) {
+function Projects({ projects, onChange }: ProjectsProps) {
+  const [cloning, setCloning] = useState(false)
+  const [error, setError] = useState('')
+
+  const addLocal = async () => {
+    setError('')
+    try {
+      const dir = await ProjectService.SelectDirectory('Choose a local Git repository')
+      if (!dir) {
+        return
+      }
+      await ProjectService.AddLocalProject(dir)
+      onChange()
+    } catch (e) {
+      setError(errorMessage(e))
+    }
+  }
+
+  const remove = async (p: Project) => {
+    setError('')
+    try {
+      const answer = await Dialogs.Question({
+        Title: `Remove ${p.name}?`,
+        Message: 'The project is removed from DevHub. Files on disk are not deleted.',
+        Buttons: [
+          { Label: 'Cancel', IsCancel: true },
+          { Label: 'Remove', IsDefault: true },
+        ],
+      })
+      if (answer !== 'Remove') {
+        return
+      }
+      await ProjectService.RemoveProject(p.id)
+      onChange()
+    } catch (e) {
+      setError(errorMessage(e))
+    }
+  }
+
   return (
     <div className="page">
       <div className="page-actions">
-        <button className="btn btn-primary" disabled>Add local repository</button>
-        <button className="btn" disabled>Clone repository</button>
+        <button className="btn btn-primary" onClick={addLocal}>Add local repository</button>
+        <button className="btn" onClick={() => setCloning(true)} disabled={cloning}>Clone repository</button>
       </div>
+      {error && <p className="error">{error}</p>}
+
+      {cloning && (
+        <CloneForm
+          onCloned={() => {
+            setCloning(false)
+            onChange()
+          }}
+          onCancel={() => setCloning(false)}
+        />
+      )}
 
       <section className="panel">
         {projects.length === 0 ? (
-          <EmptyState title="No projects" description="Projects you add will be listed here, grouped by workspace." />
+          <EmptyState title="No projects" description="Add a local Git repository or clone one to get started." />
         ) : (
           <ul className="project-list">
             {projects.map((p) => (
@@ -29,6 +84,7 @@ function Projects({ projects }: ProjectsProps) {
                   <button className="btn" disabled>Terminal</button>
                   <button className="btn" disabled>IDE</button>
                   <button className="btn" disabled>Finder</button>
+                  <button className="btn btn-danger" onClick={() => remove(p)}>Remove</button>
                 </div>
               </li>
             ))}

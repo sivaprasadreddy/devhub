@@ -40,7 +40,7 @@ function App() {
         <Topbar title={title} search={search} onSearch={setSearch} onRefresh={refresh} lastRefresh={lastRefresh} />
         <main className="content">
           {page === 'dashboard' && <Dashboard projects={visibleProjects} onAddProject={() => setPage('projects')} />}
-          {page === 'projects' && <Projects projects={visibleProjects} />}
+          {page === 'projects' && <Projects projects={visibleProjects} onChange={refresh} />}
           {page === 'activity' && <Activity />}
           {page === 'insights' && <Insights />}
           {page === 'settings' && <Settings />}

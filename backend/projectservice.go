@@ -1,46 +1,86 @@
 package backend
 
 import (
-	"encoding/json"
+	"context"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
-	"sync"
+	"strings"
+
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
-// ProjectService manages the persisted list of projects.
+// ProjectService manages the tracked projects.
 type ProjectService struct {
-	mu       sync.Mutex
-	filePath string
+	store *Store
 }
 
-// NewProjectService stores projects in the user's config directory.
-func NewProjectService() (*ProjectService, error) {
-	dir, err := os.UserConfigDir()
-	if err != nil {
-		return nil, err
-	}
-	return &ProjectService{filePath: filepath.Join(dir, "devhub", "projects.json")}, nil
+// NewProjectService creates a service backed by store.
+func NewProjectService(store *Store) *ProjectService {
+	return &ProjectService{store: store}
 }
 
 // ListProjects returns all tracked projects.
 func (s *ProjectService) ListProjects() ([]Project, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	return s.load()
+	return s.store.ListProjects()
 }
 
-func (s *ProjectService) load() ([]Project, error) {
-	data, err := os.ReadFile(s.filePath)
-	if errors.Is(err, os.ErrNotExist) {
-		return []Project{}, nil
+// SelectDirectory shows a native folder picker and returns the chosen path,
+// or "" if the user cancelled.
+func (s *ProjectService) SelectDirectory(title string) (string, error) {
+	return application.Get().Dialog.OpenFile().
+		SetTitle(title).
+		CanChooseFiles(false).
+		CanChooseDirectories(true).
+		CanCreateDirectories(true).
+		PromptForSingleSelection()
+}
+
+// AddLocalProject tracks the existing Git repository at dir.
+func (s *ProjectService) AddLocalProject(ctx context.Context, dir string) (*Project, error) {
+	if strings.TrimSpace(dir) == "" {
+		return nil, errors.New("select a directory")
 	}
+	root, err := repoRoot(ctx, dir)
 	if err != nil {
 		return nil, err
 	}
-	projects := []Project{}
-	if err := json.Unmarshal(data, &projects); err != nil {
+	p := &Project{
+		Name:      filepath.Base(root),
+		Path:      root,
+		RemoteURL: remoteURL(ctx, root),
+	}
+	if err := s.store.InsertProject(p); err != nil {
 		return nil, err
 	}
-	return projects, nil
+	return p, nil
+}
+
+// CloneProject clones url into a new directory under parentDir and tracks it.
+func (s *ProjectService) CloneProject(ctx context.Context, url, parentDir string) (*Project, error) {
+	url = strings.TrimSpace(url)
+	if url == "" {
+		return nil, errors.New("enter a repository URL")
+	}
+	if strings.TrimSpace(parentDir) == "" {
+		return nil, errors.New("select a destination directory")
+	}
+	name := repoNameFromURL(url)
+	if name == "" || name == "." {
+		return nil, fmt.Errorf("cannot derive a directory name from %q", url)
+	}
+	dest := filepath.Join(parentDir, name)
+	if _, err := os.Stat(dest); err == nil {
+		return nil, fmt.Errorf("%s already exists", dest)
+	}
+	if err := gitClone(ctx, url, dest); err != nil {
+		return nil, err
+	}
+	return s.AddLocalProject(ctx, dest)
+}
+
+// RemoveProject stops tracking a project. Files on disk are left untouched.
+func (s *ProjectService) RemoveProject(id int64) error {
+	return s.store.DeleteProject(id)
 }
