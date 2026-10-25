@@ -24,6 +24,13 @@ export function GetActivity(): $CancellablePromise<$models.RemoteActivity> {
 }
 
 /**
+ * GetProjectDetails returns the Git status and open PRs/issues of a project.
+ */
+export function GetProjectDetails(id: number): $CancellablePromise<$models.ProjectDetails> {
+    return $Call.ByID(2011067137, id);
+}
+
+/**
  * IsConnected reports whether the provider has credentials.
  */
 export function IsConnected(): $CancellablePromise<boolean> {

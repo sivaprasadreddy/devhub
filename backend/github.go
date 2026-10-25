@@ -134,6 +134,36 @@ type githubRepoCounts struct {
 	} `json:"issues"`
 }
 
+// postGraphQL sends a GraphQL query and decodes the JSON response into out.
+func (g *GitHubProvider) postGraphQL(ctx context.Context, token, query string, vars any, out any) error {
+	body, err := json.Marshal(map[string]any{"query": query, "variables": vars})
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, g.endpoint, bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := g.client.Do(req)
+	if err != nil {
+		return fmt.Errorf("GitHub request failed: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusUnauthorized {
+		return errors.New("GitHub rejected the token; run `gh auth login` or update GITHUB_TOKEN")
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("GitHub returned %s", resp.Status)
+	}
+	if err := json.NewDecoder(resp.Body).Decode(out); err != nil {
+		return fmt.Errorf("decode GitHub response: %w", err)
+	}
+	return nil
+}
+
 // fetchBatch queries several repositories in one GraphQL request using aliases.
 func (g *GitHubProvider) fetchBatch(ctx context.Context, token string, refs []githubRepoRef) ([]RepoActivity, error) {
 	var params, fields []string
@@ -148,32 +178,9 @@ func (g *GitHubProvider) fetchBatch(ctx context.Context, token string, refs []gi
 	}
 	query := fmt.Sprintf("query(%s) { %s }", strings.Join(params, ", "), strings.Join(fields, " "))
 
-	body, err := json.Marshal(map[string]any{"query": query, "variables": vars})
-	if err != nil {
-		return nil, err
-	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, g.endpoint, bytes.NewReader(body))
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Authorization", "Bearer "+token)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := g.client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("GitHub request failed: %w", err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode == http.StatusUnauthorized {
-		return nil, errors.New("GitHub rejected the token; run `gh auth login` or update GITHUB_TOKEN")
-	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("GitHub returned %s", resp.Status)
-	}
-
 	var out graphQLResponse
-	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
-		return nil, fmt.Errorf("decode GitHub response: %w", err)
+	if err := g.postGraphQL(ctx, token, query, vars, &out); err != nil {
+		return nil, err
 	}
 
 	// Errors for individual repositories (e.g. not found) carry the alias as path[0].

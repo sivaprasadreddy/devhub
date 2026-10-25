@@ -32,3 +32,33 @@ func (s *ActivityService) GetActivity(ctx context.Context) (RemoteActivity, erro
 	}
 	return activity, nil
 }
+
+// ProjectDetails combines a project's local Git status with its hosting activity.
+type ProjectDetails struct {
+	Project   Project      `json:"project"`
+	Status    GitStatus    `json:"status"`
+	Connected bool         `json:"connected"`
+	Remote    *RepoDetails `json:"remote"`
+	// RemoteError explains why Remote could not be loaded.
+	RemoteError string `json:"remoteError"`
+}
+
+// GetProjectDetails returns the Git status and open PRs/issues of a project.
+func (s *ActivityService) GetProjectDetails(ctx context.Context, id int64) (ProjectDetails, error) {
+	project, err := s.store.GetProject(id)
+	if err != nil {
+		return ProjectDetails{}, err
+	}
+	details := ProjectDetails{
+		Project:   project,
+		Status:    readStatus(ctx, project),
+		Connected: s.provider.Connected(ctx),
+	}
+	if details.Connected {
+		details.Remote, err = s.provider.Details(ctx, project)
+		if err != nil {
+			details.RemoteError = err.Error()
+		}
+	}
+	return details, nil
+}

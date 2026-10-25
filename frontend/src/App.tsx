@@ -8,11 +8,24 @@ import Projects from './pages/Projects'
 import Activity from './pages/Activity'
 import Insights from './pages/Insights'
 import Settings from './pages/Settings'
+import ProjectDetail from './pages/ProjectDetail'
 import { PageId, footerNav, mainNav } from './navigation'
 import { ActivityState, StatusMap } from './status'
 
 function App() {
   const [page, setPage] = useState<PageId>('dashboard')
+  // When set, the Projects page shows this project's details.
+  const [openProjectId, setOpenProjectId] = useState<number | null>(null)
+
+  const navigate = (next: PageId) => {
+    setPage(next)
+    setOpenProjectId(null)
+  }
+
+  const openProject = (id: number) => {
+    setPage('projects')
+    setOpenProjectId(id)
+  }
   const [projects, setProjects] = useState<Project[]>([])
   const [search, setSearch] = useState('')
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
@@ -59,12 +72,17 @@ function App() {
 
   return (
     <div className="app">
-      <Sidebar active={page} onSelect={setPage} projectCount={projects.length} />
+      <Sidebar active={page} onSelect={navigate} projectCount={projects.length} />
       <div className="main">
         <Topbar title={title} search={search} onSearch={setSearch} onRefresh={refresh} refreshing={refreshing} lastRefresh={lastRefresh} />
         <main className="content">
-          {page === 'dashboard' && <Dashboard projects={visibleProjects} statuses={statuses} activity={activity} onAddProject={() => setPage('projects')} />}
-          {page === 'projects' && <Projects projects={visibleProjects} onChange={refresh} />}
+          {page === 'dashboard' && <Dashboard projects={visibleProjects} statuses={statuses} activity={activity} onAddProject={() => navigate('projects')} onOpenProject={openProject} />}
+          {page === 'projects' && openProjectId === null && (
+            <Projects projects={visibleProjects} onChange={refresh} onOpen={openProject} />
+          )}
+          {page === 'projects' && openProjectId !== null && (
+            <ProjectDetail key={openProjectId} projectId={openProjectId} onBack={() => setOpenProjectId(null)} />
+          )}
           {page === 'activity' && <Activity />}
           {page === 'insights' && <Insights />}
           {page === 'settings' && <Settings activity={activity} />}

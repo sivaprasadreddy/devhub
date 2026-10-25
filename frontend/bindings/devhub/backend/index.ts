@@ -18,8 +18,13 @@ export {
 export type {
     App,
     GitStatus,
+    Issue,
+    Label,
     Preferences,
     Project,
+    ProjectDetails,
+    PullRequest,
     RemoteActivity,
-    RepoActivity
+    RepoActivity,
+    RepoDetails
 } from "./models.js";

@@ -84,3 +84,62 @@ func TestGitHubActivityWithoutToken(t *testing.T) {
 		t.Fatalf("unexpected result: %+v, %v", got, err)
 	}
 }
+
+func TestGitHubDetails(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req struct {
+			Query     string         `json:"query"`
+			Variables map[string]any `json:"variables"`
+		}
+		json.NewDecoder(r.Body).Decode(&req)
+		if req.Variables["owner"] != "org" || req.Variables["name"] != "repo" {
+			t.Errorf("unexpected variables: %v", req.Variables)
+		}
+		if !strings.Contains(req.Query, "pullRequests") {
+			w.Write([]byte(`{"data": {"repository": {"issues": {"totalCount": 3, "nodes": [{
+				"number": 4, "title": "Crash", "url": "https://github.com/org/repo/issues/4",
+				"createdAt": "2026-01-01T00:00:00Z", "updatedAt": "2026-01-03T00:00:00Z",
+				"author": null, "comments": {"totalCount": 0},
+				"labels": {"nodes": []}, "assignees": {"nodes": []}
+			}]}}}}`))
+			return
+		}
+		w.Write([]byte(`{"data": {
+			"viewer": {"login": "me"},
+			"repository": {
+				"url": "https://github.com/org/repo",
+				"pullRequests": {"totalCount": 7, "nodes": [{
+					"number": 12, "title": "Add feature", "url": "https://github.com/org/repo/pull/12",
+					"isDraft": true, "createdAt": "2026-01-01T00:00:00Z", "updatedAt": "2026-01-02T00:00:00Z",
+					"reviewDecision": "REVIEW_REQUIRED", "headRefName": "feature",
+					"author": {"login": "alice"}, "comments": {"totalCount": 2},
+					"labels": {"nodes": [{"name": "bug", "color": "d73a4a"}]},
+					"assignees": {"nodes": [{"login": "me"}]},
+					"reviewRequests": {"nodes": [{"requestedReviewer": {"login": "me"}}, {"requestedReviewer": {}}]},
+					"commits": {"nodes": [{"commit": {"statusCheckRollup": {"state": "FAILURE"}}}]}
+				}]}
+			}
+		}}`))
+	}))
+	defer server.Close()
+
+	g := &GitHubProvider{endpoint: server.URL, client: server.Client(), token: func(context.Context) string { return "secret" }}
+	d, err := g.Details(context.Background(), Project{RemoteURL: "git@github.com:org/repo.git"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if d.OpenPRs != 7 || d.OpenIssues != 3 || d.Viewer != "me" || len(d.PullRequests) != 1 || len(d.Issues) != 1 {
+		t.Fatalf("unexpected details: %+v", d)
+	}
+	pr := d.PullRequests[0]
+	if !pr.Draft || pr.CIState != "FAILURE" || !pr.ReviewRequested || !pr.AssignedToMe || pr.Mine || pr.Author != "alice" || pr.Labels[0].Name != "bug" {
+		t.Fatalf("unexpected PR: %+v", pr)
+	}
+	if issue := d.Issues[0]; issue.Author != "ghost" || issue.AssignedToMe || issue.Labels == nil {
+		t.Fatalf("unexpected issue: %+v", issue)
+	}
+
+	if d, err := g.Details(context.Background(), Project{RemoteURL: "https://gitlab.com/org/repo"}); d != nil || err != nil {
+		t.Fatalf("expected nil for non-GitHub project, got %+v, %v", d, err)
+	}
+}

@@ -50,6 +50,30 @@ export interface GitStatus {
 }
 
 /**
+ * Issue is an open issue.
+ */
+export interface Issue {
+    "number": number;
+    "title": string;
+    "url": string;
+    "author": string;
+    "createdAt": string;
+    "updatedAt": string;
+    "comments": number;
+    "labels": Label[] | null;
+    "assignees": string[] | null;
+    "assignedToMe": boolean;
+}
+
+/**
+ * Label is a pull request or issue label.
+ */
+export interface Label {
+    "name": string;
+    "color": string;
+}
+
+/**
  * Preferences holds the user's preferred applications, by app path.
  */
 export interface Preferences {
@@ -67,6 +91,56 @@ export interface Project {
     "remoteUrl": string;
     "group": string;
     "addedAt": string;
+}
+
+/**
+ * ProjectDetails combines a project's local Git status with its hosting activity.
+ */
+export interface ProjectDetails {
+    "project": Project;
+    "status": GitStatus;
+    "connected": boolean;
+    "remote": RepoDetails | null;
+
+    /**
+     * RemoteError explains why Remote could not be loaded.
+     */
+    "remoteError": string;
+}
+
+/**
+ * PullRequest is an open pull request.
+ */
+export interface PullRequest {
+    "number": number;
+    "title": string;
+    "url": string;
+    "author": string;
+    "branch": string;
+    "draft": boolean;
+    "createdAt": string;
+    "updatedAt": string;
+    "comments": number;
+    "labels": Label[] | null;
+    "assignees": string[] | null;
+
+    /**
+     * ReviewDecision is APPROVED, CHANGES_REQUESTED, REVIEW_REQUIRED or "".
+     */
+    "reviewDecision": string;
+
+    /**
+     * CIState is the combined check state of the head commit: SUCCESS,
+     * FAILURE, ERROR, PENDING, EXPECTED or "" when there are no checks.
+     */
+    "ciState": string;
+
+    /**
+     * ReviewRequested reports whether the signed-in user is a requested reviewer.
+     */
+    "reviewRequested": boolean;
+    "assignedToMe": boolean;
+    "mine": boolean;
 }
 
 /**
@@ -92,6 +166,19 @@ export interface RepoActivity {
     "openPrs": number;
     "openIssues": number;
     "error": string;
+}
+
+/**
+ * RepoDetails lists the most recently updated open pull requests and issues.
+ */
+export interface RepoDetails {
+    "repo": string;
+    "webUrl": string;
+    "viewer": string;
+    "openPrs": number;
+    "openIssues": number;
+    "pullRequests": PullRequest[] | null;
+    "issues": Issue[] | null;
 }
 
 /**

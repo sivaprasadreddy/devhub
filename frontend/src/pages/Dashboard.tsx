@@ -10,6 +10,7 @@ interface DashboardProps {
   statuses: StatusMap
   activity: ActivityState | null
   onAddProject: () => void
+  onOpenProject: (id: number) => void
 }
 
 type FilterId = 'all' | 'attention' | 'uncommitted' | 'unpushed' | 'incoming'
@@ -23,7 +24,7 @@ const filters: { id: FilterId; label: string; test: (s: GitStatus | undefined) =
   { id: 'incoming', label: 'Incoming commits', test: (s) => !!s && s.behind > 0 },
 ]
 
-function Dashboard({ projects, statuses, activity, onAddProject }: DashboardProps) {
+function Dashboard({ projects, statuses, activity, onAddProject, onOpenProject }: DashboardProps) {
   const [filter, setFilter] = useState<FilterId>('all')
   const [sort, setSort] = useState<SortId>('status')
 
@@ -98,7 +99,7 @@ function Dashboard({ projects, statuses, activity, onAddProject }: DashboardProp
         ) : visible.length === 0 ? (
           <EmptyState title="Nothing here" description="No projects match this filter." />
         ) : (
-          <ProjectTable projects={visible} statuses={statuses} activity={activity} />
+          <ProjectTable projects={visible} statuses={statuses} activity={activity} onOpen={onOpenProject} />
         )}
       </section>
     </div>

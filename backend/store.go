@@ -76,6 +76,19 @@ func (s *Store) ListProjects() ([]Project, error) {
 	return projects, rows.Err()
 }
 
+// GetProject returns the project with the given ID.
+func (s *Store) GetProject(id int64) (Project, error) {
+	var p Project
+	var addedAt int64
+	err := s.db.QueryRow(`SELECT id, name, path, remote_url, grp, added_at FROM projects WHERE id = ?`, id).
+		Scan(&p.ID, &p.Name, &p.Path, &p.RemoteURL, &p.Group, &addedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return p, fmt.Errorf("project %d not found", id)
+	}
+	p.AddedAt = time.Unix(addedAt, 0)
+	return p, err
+}
+
 // InsertProject stores p and fills in its ID and AddedAt.
 func (s *Store) InsertProject(p *Project) error {
 	p.AddedAt = time.Now().Truncate(time.Second)
