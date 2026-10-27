@@ -27,20 +27,7 @@ Show the local Git state of every project at a glance, including whether it is s
 
 **Goal:** Make it easy to identify which projects need attention.
 
-## 3. Pull Requests and Issues Dashboard
-
-Aggregate Git hosting activity across configured projects.
-
-- Show open pull requests, drafts, review requests, and PRs awaiting the user's review.
-- Show CI checks and review/merge status where available.
-- Show open and closed issues, including labels and assignees.
-- Highlight PRs and issues assigned to the user.
-- Identify stale PRs and issues with no recent activity.
-- Provide direct links to open each item in the browser.
-
-**Goal:** Understand project activity without visiting each repository's website.
-
-## 4. Project Insights and Activity
+## 3. Project Insights and Activity
 
 Provide a quick overview of repository health and development activity.
 
@@ -53,7 +40,7 @@ Provide a quick overview of repository health and development activity.
 
 **Goal:** Quickly understand the state and momentum of each project.
 
-## 5. Unified Dashboard and Quick Actions
+## 4. Unified Dashboard and Quick Actions
 
 Bring project information together in one actionable overview.
 

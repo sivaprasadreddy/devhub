@@ -1,4 +1,4 @@
-export type PageId = 'dashboard' | 'projects' | 'activity' | 'insights' | 'settings'
+export type PageId = 'dashboard' | 'projects' | 'insights' | 'settings'
 
 export interface NavItem {
   id: PageId
@@ -9,7 +9,6 @@ export interface NavItem {
 export const mainNav: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: '◫' },
   { id: 'projects', label: 'Projects', icon: '▤' },
-  { id: 'activity', label: 'Pull Requests & Issues', icon: '⇄' },
   { id: 'insights', label: 'Insights', icon: '◔' },
 ]
 

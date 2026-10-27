@@ -5,7 +5,6 @@ import Sidebar from './components/Sidebar'
 import Topbar from './components/Topbar'
 import Dashboard from './pages/Dashboard'
 import Projects from './pages/Projects'
-import Activity from './pages/Activity'
 import Insights from './pages/Insights'
 import Settings from './pages/Settings'
 import ProjectDetail from './pages/ProjectDetail'
@@ -120,7 +119,6 @@ function App() {
           {page === 'projects' && openProjectId !== null && (
             <ProjectDetail key={openProjectId} projectId={openProjectId} refreshCount={refreshCount} onBack={() => setOpenProjectId(null)} />
           )}
-          {page === 'activity' && <Activity />}
           {page === 'insights' && <Insights />}
           {page === 'settings' && <Settings activity={activity} refreshInterval={refreshInterval} onRefreshIntervalChange={changeRefreshInterval} />}
         </main>
