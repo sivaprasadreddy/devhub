@@ -109,6 +109,14 @@ func readStatus(ctx context.Context, p Project) GitStatus {
 	return st
 }
 
+// osMetadataFiles are files created by the operating system's file manager.
+// They are not real changes, so they are not counted as untracked.
+var osMetadataFiles = map[string]bool{
+	".DS_Store":   true,
+	"Thumbs.db":   true,
+	"desktop.ini": true,
+}
+
 // parsePorcelainV2 fills st from `git status --porcelain=v2 --branch` output.
 func parsePorcelainV2(out string, st *GitStatus) {
 	scanner := bufio.NewScanner(strings.NewReader(out))
@@ -146,7 +154,9 @@ func parsePorcelainV2(out string, st *GitStatus) {
 		case strings.HasPrefix(line, "u "):
 			st.Conflicts++
 		case strings.HasPrefix(line, "? "):
-			st.Untracked++
+			if !osMetadataFiles[filepath.Base(strings.TrimPrefix(line, "? "))] {
+				st.Untracked++
+			}
 		}
 	}
 }

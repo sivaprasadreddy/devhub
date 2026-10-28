@@ -26,7 +26,9 @@ func TestParsePorcelainV2(t *testing.T) {
 1 .D N... 100644 100644 000000 a b deleted.go
 2 R. N... 100644 100644 100644 a b R100 new.go	old.go
 u UU N... 100644 100644 100644 100644 a b c conflict.go
-? untracked.go`
+? untracked.go
+? .DS_Store
+? build/.DS_Store`
 	var st GitStatus
 	parsePorcelainV2(out, &st)
 	want := GitStatus{Branch: "main", Upstream: "origin/main", Ahead: 2, Behind: 3,
